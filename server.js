@@ -1,16 +1,19 @@
-const express = require('express')
-const app = express()
+const express = require('express');
+const app = express();
 
-const envelopeRoutes = require('./routes/envelopes')
+require('dotenv').config();
 
-app.use(express.json())
+const envelopeRoutes = require('./routes/envelopes');
+
+app.use(express.json());
 
 app.get('/', (req, res) => {
     res.send('Hello, World!')
-})
+});
 
-app.use('/api/v1/envelopes', envelopeRoutes)
+app.use('/api/v1/envelopes', envelopeRoutes);
 
-app.listen(3000, () => {
-    console.log('Server listening on port 3000')
-})
+const PORT =  process.env.PORT || 5008;
+app.listen(PORT, () => {
+    console.log('Server listening on port ', PORT)
+});

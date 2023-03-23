@@ -1,8 +1,15 @@
-const allEnvelopes = require('../models/Envelopes')
+// const allEnvelopes = require('../models/Envelopes')
+const budgetAPIPool = require('../config/dbConfig');
 
 // get all envelope details
-exports.getAllEnvelopes = (req, res) => {
-    res.json({allEnvelopes})
+exports.getAllEnvelopes = async(req, res) => {
+    try {
+        const allEnvelopes = await budgetAPIPool.query('SELECT * FROM envelopes;');
+        res.json(allEnvelopes.rows);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({error: error.message})
+    }
 }
 
 // create a new envelope
