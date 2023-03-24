@@ -6,9 +6,11 @@ envelopeRoutes
     .get('/', envelopeControllers.getAllEnvelopes)
     .get('/:id', envelopeControllers.getEnvelope)
     .post('/', envelopeControllers.createEnvelope)
-    .post('/transfer', envelopeControllers.transferAmount)
     .put('/:id', envelopeControllers.updateEnvelope)
     .delete('/:id', envelopeControllers.deleteEnvelope)
+
+    .get('/:id/transactions', envelopeControllers.getEnvelopesTransactions)
+    .post('/:id/transactions', envelopeControllers.addEnvelopesTransaction)
 
 
 module.exports = envelopeRoutes;
