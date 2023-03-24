@@ -38,9 +38,6 @@ exports.createEnvelope = async (req, res) => {
 // get an envelope by id
 exports.getEnvelope = async (req, res) => {
     const id = parseInt(req.params.id);
-    if (!id) {
-        return res.status(400).json({ "message": "Envelope id must be provided"})
-    }
 
     try {
         const foundEnvelope = await budgetAPIPool.query(
@@ -124,14 +121,70 @@ exports.deleteEnvelope = async (req, res) => {
 }
 
 // get all transactions by an envelope
-exports.getEnvelopesTransactions = (req, res) => {
+exports.getEnvelopesTransactions = async (req, res) => {
+    const {id} = req.params;
+    if (!id) {
+        return res.status(400).json({ "message": "Envelope id must be provided"})
+    }
 
+    try {
+        const foundEnvelope = await budgetAPIPool.query(
+            'SELECT * from envelopes WHERE id = $1',
+            [id]
+        );
+        if(!foundEnvelope.rowCount) return res. status(404).json({ message: `Envelope with id ${id} not found`});
+
+        const allTransactions = await budgetAPIPool.query(
+            'SELECT * FROM transactions WHERE envelopeId = $1',
+            [id]
+        )
+        res.json(allTransactions.rows);
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({error: error.message});
+    }
 }
 
 
 // add a transaction to envelope
-exports.addEnvelopesTransaction = (req, res) => {
-    
+exports.addEnvelopesTransaction = async (req, res) => {
+    const {id} = req.params;
+    if (!id) {
+        return res.status(400).json({ "error": "Envelope id must be provided"})
+    }
+    const {name, amount} = req.body;
+    if(!name || !amount) return res.status(400).json({error: "Transaction must include name and amount"});
+
+    try {
+        const foundEnvelope = await budgetAPIPool.query(
+            'SELECT * from envelopes WHERE id = $1',
+            [id]
+        );
+        if(!foundEnvelope.rowCount) return res. status(404).json({ message: `Envelope with id ${id} not found`});
+
+        if(amount > foundEnvelope.rows[0].budget) return res.json({message: "Budget for this envelope exceeded. Transaction canceled."});
+
+        const newTransaction = await budgetAPIPool.query(
+            'INSERT INTO transactions (name, amount, date, envelopeId) VALUES ($1, $2, $3, $4) RETURNING *',
+            [name, amount, new Date(), id]
+        );
+
+        const updatedEnvelope = await budgetAPIPool.query(
+            'UPDATE envelopes SET budget = budget - $1 WHERE id = $2 RETURNING *',
+            [amount, id]
+        );
+
+        res.json({
+            message: "Tranaction successful",
+            transaction: newTransaction.rows[0],
+            updatedEnvelope: updatedEnvelope.rows[0]
+        });
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({error: error.message});
+    }
 }
 
 // transfer amount from envelopes

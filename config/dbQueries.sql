@@ -19,3 +19,17 @@ CREATE TABLE transactions (
     date DATE,
     envelopeId integer REFERENCES envelopes(id)
 );
+
+INSERT INTO transactions (name, amount, date, envelopeId) VALUES (
+    'Buy Macbook',
+    700,
+    '04-01-2023',
+    1
+);
+
+INSERT INTO transactions (name, amount, date, envelopeId) VALUES (
+    'Buy Juice',
+    100,
+    '04-01-2023',
+    2
+);
